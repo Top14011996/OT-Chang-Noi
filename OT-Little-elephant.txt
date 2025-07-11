@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แอปบันทึก OT</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Background color from image - light blue/purple */
+            background-color: #e6eefc;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top, not center */
+            min-height: 100vh;
+            padding: 1rem;
+            box-sizing: border-box;
+            /* Subtle dotted pattern */
+            background-image: radial-gradient(circle at 1px 1px, #d1e0ff 1px, transparent 0);
+            background-size: 10px 10px;
+        }
+        .container {
+            max-width: 450px; /* Max width for mobile-first design */
+            width: 100%;
+            margin: 0 auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem; /* Space between cards */
+        }
+        .card {
+            background-color: #fff;
+            border-radius: 2rem; /* More rounded corners */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); /* Stronger shadow */
+            padding: 1.5rem;
+        }
+        /* Specific card for daily summary - lighter background */
+        .summary-card {
+            background-color: #f0f6ff; /* Lighter blue background */
+            border: 1px solid #d1e0ff; /* Subtle border */
+        }
+        .btn {
+            padding: 1rem 1.25rem; /* Larger buttons */
+            border-radius: 1.5rem; /* Very rounded buttons */
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem; /* Space between icon and text */
+            cursor: pointer;
+            font-size: 1.1rem; /* Larger text on buttons */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .btn-blue {
+            background-color: #63b3ed; /* Soft blue */
+            color: #fff;
+        }
+        .btn-blue:hover {
+            background-color: #4299e1;
+            transform: translateY(-2px);
+        }
+        .btn-red {
+            background-color: #fc8181; /* Soft red */
+            color: #fff;
+        }
+        .btn-red:hover {
+            background-color: #f56565;
+            transform: translateY(-2px);
+        }
+        .btn-green {
+            background-color: #68d391; /* Soft green */
+            color: #fff;
+        }
+        .btn-green:hover {
+            background-color: #48bb78;
+            transform: translateY(-2px);
+        }
+        .btn-yellow {
+            background-color: #f6e05e; /* Soft yellow */
+            color: #333; /* Darker text for contrast */
+        }
+        .btn-yellow:hover {
+            background-color: #ecc94b;
+            transform: translateY(-2px);
+        }
+        /* General input styling */
+        input[type="number"],
+        input[type="text"],
+        input[type="time"],
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.75rem; /* More rounded inputs */
+            border: 1px solid #d1d5db;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+            box-sizing: border-box;
+            background-color: #f9fafb; /* Light input background */
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+        }
+        .calendar-day {
+            background-color: #fff; /* White background for all days */
+            border-radius: 0.75rem; /* More rounded days */
+            padding: 0.75rem 0.5rem;
+            text-align: center;
+            font-size: 0.875rem;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Subtle shadow for days */
+        }
+        .calendar-day:hover {
+            background-color: #f3f4f6;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .calendar-day.current-day {
+            border: 2px solid #63b3ed; /* Highlight current day with blue border */
+            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.3);
+        }
+        .calendar-day .day-number {
+            font-weight: 700;
+            font-size: 1.125rem;
+            color: #4f46e5; /* Keep blue for day number */
+            margin-bottom: 0.25rem;
+        }
+        .calendar-day .summary-text {
+            font-size: 0.75rem;
+            color: #4b5563;
+            line-height: 1.2;
+            text-align: left;
+            width: 100%;
+            padding-left: 0.25rem;
+        }
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: #333;
+        }
+        .calendar-day-name {
+            font-weight: 600;
+            color: #6b7280;
+            text-align: center;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 2rem;
+            border-radius: 1.5rem; /* More rounded modal */
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        .close-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            color: #aaa;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: #333;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 0.5rem;
+            }
+            .card {
+                padding: 1rem;
+            }
+            .btn {
+                padding: 0.8rem 1rem;
+                font-size: 1rem;
+                border-radius: 1.2rem;
+            }
+            .calendar-day {
+                min-height: 60px;
+                font-size: 0.75rem;
+                padding: 0.5rem;
+            }
+            .calendar-day .day-number {
+                font-size: 1rem;
+            }
+            .calendar-day .summary-text {
+                font-size: 0.65rem;
+            }
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div class="container">
+        <!-- Elephant Icon and Greeting -->
+        <div class="flex flex-col items-center justify-center text-center mb-4 mt-4">
+            <!-- Elephant SVG Icon -->
+            <svg width="100" height="100" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-gray-600 mb-2">
+                <path d="M12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2Z" fill="#a0aec0"/>
+                <path d="M12 12C8.68629 12 6 14.6863 6 18H18C18 14.6863 15.3137 12 12 12Z" fill="#a0aec0"/>
+                <path d="M16 11C17.6569 11 19 9.65685 19 8C19 6.34315 17.6569 5 16 5C14.3431 5 13 6.34315 13 8C13 9.65685 14.3431 11 16 11Z" fill="#a0aec0"/>
+                <path d="M8 11C9.65685 11 11 9.65685 11 8C11 6.34315 9.65685 5 8 5C6.34315 5 5 6.34315 5 8C5 9.65685 6.34315 11 8 11Z" fill="#a0aec0"/>
+                <!-- Trunk -->
+                <path d="M10 12C10 14 10 16 10 18C10 20 12 22 14 22C16 22 16 20 16 18C16 16 16 14 16 12" stroke="#4a5568" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- Hard Hat -->
+                <path d="M10 3L12 1L14 3H10Z" fill="#f6ad55"/>
+                <path d="M10 3C10 3 10.5 4 12 4C13.5 4 14 3 14 3" stroke="#d69e2e" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <h1 class="text-3xl font-bold text-gray-800">สวัสดีค่ะ!</h1>
+        </div>
+
+        <!-- Current Time Display (Optional, can be hidden if not desired in this design) -->
+        <!-- <div class="card text-center">
+            <h2 class="text-xl font-semibold mb-2">เวลาปัจจุบัน</h2>
+            <p id="currentTime" class="text-4xl font-bold text-indigo-600">--:--:--</p>
+            <p id="currentDate" class="text-lg text-gray-600 mt-1">--/--/----</p>
+        </div> -->
+
+        <!-- Time Tracking Section - Modified for 2x2 grid buttons -->
+        <div class="card">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <button id="clockInBtn" class="btn btn-blue w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        เข้างาน
+                    </button>
+                    <p id="clockInTime" class="text-sm text-gray-500 mt-2 text-center">ยังไม่เข้างาน</p>
+                </div>
+                <div>
+                    <button id="clockOutBtn" class="btn btn-red w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        ออกงาน
+                    </button>
+                    <p id="clockOutTime" class="text-sm text-gray-500 mt-2 text-center">ยังไม่ออกงาน</p>
+                </div>
+                <div>
+                    <button id="startOtBtn" class="btn btn-green w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><circle cx="12" cy="12" r="10"></circle><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="10" font-weight="bold" fill="currentColor">OT</text></svg>
+                        เริ่มโอที
+                    </button>
+                    <p id="otStartTime" class="text-sm text-gray-500 mt-2 text-center">ยังไม่เริ่ม OT</p>
+                </div>
+                <div>
+                    <button id="endOtBtn" class="btn btn-yellow w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        เลิกโอที
+                    </button>
+                    <p id="otEndTime" class="text-sm text-gray-500 mt-2 text-center">ยังไม่จบ OT</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Summary Section - Redesigned -->
+        <div class="card summary-card">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">สรุปประจำวัน</h2>
+            <p class="text-md text-gray-700 mb-2">เวลาทำงาน: <span id="dailyWorkHours" class="font-semibold">0 ชั่วโมง 0 นาที</span></p>
+            <p class="text-md text-gray-700 mb-2">โอที: <span id="dailyOtHours" class="font-semibold">0 ชั่วโมง 0 นาที</span></p>
+            <div class="border-t border-gray-300 my-3"></div> <!-- Separator line -->
+            <p class="text-2xl font-bold text-indigo-700 mt-4">ยอดเงิน: <span id="dailyTotalIncome">0.00</span> บาท</p>
+        </div>
+
+        <!-- Settings Section -->
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-4">การตั้งค่า</h2>
+            <div class="mb-4">
+                <label for="baseSalary" class="block text-sm font-medium text-gray-700">ฐานเงินเดือน (บาท)</label>
+                <input type="number" id="baseSalary" value="15000" class="mt-1">
+            </div>
+            <div class="mb-4">
+                <label for="workingDaysPerMonth" class="block text-sm font-medium text-gray-700">วันทำงานต่อเดือน</label>
+                <input type="number" id="workingDaysPerMonth" value="22" class="mt-1">
+            </div>
+            <div class="mb-4">
+                <label for="breakTime" class="block text-sm font-medium text-gray-700">หักเวลาพัก (นาที)</label>
+                <input type="number" id="breakTime" value="60" class="mt-1">
+            </div>
+            <button id="saveSettingsBtn" class="btn btn-blue w-full">บันทึกการตั้งค่า</button>
+            <button id="resetAllDataBtn" class="btn btn-danger w-full mt-4">รีเซ็ตข้อมูลทั้งหมด</button>
+        </div>
+
+        <!-- Extra Income & Absent Section -->
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-4">รายได้พิเศษ / ขาดงาน</h2>
+            <div class="mb-4">
+                <label for="extraIncome" class="block text-sm font-medium text-gray-700">รายได้พิเศษ (บาท)</label>
+                <input type="number" id="extraIncome" value="0" class="mt-1">
+            </div>
+            <div class="mb-4">
+                <label for="extraNote" class="block text-sm font-medium text-gray-700">หมายเหตุ</label>
+                <textarea id="extraNote" rows="2" class="mt-1"></textarea>
+            </div>
+            <div class="flex items-center mb-4">
+                <input type="checkbox" id="isAbsent" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                <label for="isAbsent" class="ml-2 block text-sm font-medium text-gray-900">ขาดงาน</label>
+            </div>
+            <button id="saveDailyDataBtn" class="btn btn-blue w-full">บันทึกข้อมูลรายวัน</button>
+        </div>
+
+        <!-- Calendar Section -->
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-4">ปฏิทินและสรุปรายวัน</h2>
+            <div class="calendar-header">
+                <button id="prevMonthBtn" class="btn btn-secondary px-3 py-1 text-sm">&lt;</button>
+                <span id="currentMonthYear"></span>
+                <button id="nextMonthBtn" class="btn btn-secondary px-3 py-1 text-sm">&gt;</button>
+            </div>
+            <div class="calendar-grid mb-4">
+                <div class="calendar-day-name">อา</div>
+                <div class="calendar-day-name">จ</div>
+                <div class="calendar-day-name">อ</div>
+                <div class="calendar-day-name">พ</div>
+                <div class="calendar-day-name">พฤ</div>
+                <div class="calendar-day-name">ศ</div>
+                <div class="calendar-day-name">ส</div>
+            </div>
+            <div id="calendarDays" class="calendar-grid">
+                <!-- Calendar days will be rendered here by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Monthly Summary Section -->
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-4">สรุปรายเดือน</h2>
+            <p class="text-md text-gray-700 mb-2">รวมเวลาทำงาน: <span id="monthlyTotalWorkHours" class="font-semibold">0 ชั่วโมง 0 นาที</span></p>
+            <p class="text-md text-gray-700 mb-2">รวมเวลา OT: <span id="monthlyTotalOtHours" class="font-semibold">0 ชั่วโมง 0 นาที</span></p>
+            <p class="text-md text-gray-700 mb-2">รวมรายได้ปกติ: <span id="monthlyTotalRegularIncome" class="font-semibold">0.00 บาท</span></p>
+            <p class="text-md text-gray-700 mb-2">รวมรายได้ OT: <span id="monthlyTotalOtIncome" class="font-semibold">0.00 บาท</span></p>
+            <p class="text-md text-gray-700 mb-2">รวมรายได้พิเศษ: <span id="monthlyTotalExtraIncome" class="font-semibold">0.00 บาท</span></p>
+            <p class="text-xl font-bold text-indigo-700 mt-4">รวมรายได้ทั้งเดือน: <span id="monthlyTotalIncome">0.00 บาท</span></p>
+        </div>
+    </div>
+
+    <!-- Custom Alert/Confirmation Modal -->
+    <div id="appModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeModalBtn">&times;</span>
+            <p id="modalMessage" class="text-lg text-gray-800 mb-4"></p>
+            <div id="modalActions" class="flex justify-end gap-2">
+                <!-- Buttons will be added here dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- New Modal for Editing Daily Records -->
+    <div id="editDailyRecordModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeEditModalBtn">&times;</span>
+            <h3 class="text-xl font-semibold mb-4">แก้ไขบันทึกประจำวัน: <span id="editModalDate"></span></h3>
+
+            <input type="hidden" id="editModalDateKey">
+
+            <div class="mb-4">
+                <label for="editClockInTime" class="block text-sm font-medium text-gray-700">เข้างาน</label>
+                <input type="time" id="editClockInTime" class="mt-1">
+            </div>
+            <div class="mb-4">
+                <label for="editClockOutTime" class="block text-sm font-medium text-gray-700">ออกงาน</label>
+                <input type="time" id="editClockOutTime" class="mt-1">
+            </div>
+            <div class="mb-4">
+                <label for="editOtStartTime" class="block text-sm font-medium text-gray-700">เริ่ม OT</label>
+                <input type="time" id="editOtStartTime" class="mt-1">
+            </div>
+            <div class="mb-4">
+                <label for="editOtEndTime" class="block text-sm font-medium text-gray-700">จบ OT</label>
+                <input type="time" id="editOtEndTime" class="mt-1">
+            </div>
+            <div class="mb-4">
+                <label for="editExtraIncome" class="block text-sm font-medium text-gray-700">รายได้พิเศษ (บาท)</label>
+                <input type="number" id="editExtraIncome" class="mt-1">
+            </div>
+            <div class="mb-4">
+                <label for="editExtraNote" class="block text-sm font-medium text-gray-700">หมายเหตุ</label>
+                <textarea id="editExtraNote" rows="2" class="mt-1"></textarea>
+            </div>
+            <div class="flex items-center mb-4">
+                <input type="checkbox" id="editIsAbsent" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                <label for="editIsAbsent" class="ml-2 block text-sm font-medium text-gray-900">ขาดงาน</label>
+            </div>
+
+            <div class="flex justify-end gap-2 mt-6">
+                <button id="deleteDailyRecordBtn" class="btn btn-danger">ลบข้อมูลวันนี้</button>
+                <button id="cancelEditBtn" class="btn btn-secondary">ยกเลิก</button>
+                <button id="saveEditedRecordBtn" class="btn btn-blue">บันทึกการแก้ไข</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const currentTimeEl = document.getElementById('currentTime');
+        const currentDateEl = document.getElementById('currentDate');
+        const clockInBtn = document.getElementById('clockInBtn');
+        const clockOutBtn = document.getElementById('clockOutBtn');
+        const startOtBtn = document.getElementById('startOtBtn');
+        const endOtBtn = document.getElementById('endOtBtn');
+        const clockInTimeEl = document.getElementById('clockInTime');
+        const clockOutTimeEl = document.getElementById('clockOutTime');
+        const otStartTimeEl = document.getElementById('otStartTime');
+        const otEndTimeEl = document.getElementById('otEndTime');
+
+        const baseSalaryInput = document.getElementById('baseSalary');
+        const workingDaysPerMonthInput = document.getElementById('workingDaysPerMonth');
+        const breakTimeInput = document.getElementById('breakTime');
+        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        const resetAllDataBtn = document.getElementById('resetAllDataBtn');
+
+        const extraIncomeInput = document.getElementById('extraIncome');
+        const extraNoteInput = document.getElementById('extraNote');
+        const isAbsentCheckbox = document.getElementById('isAbsent');
+        const saveDailyDataBtn = document.getElementById('saveDailyDataBtn');
+
+        const dailyWorkHoursEl = document.getElementById('dailyWorkHours');
+        const dailyOtHoursEl = document.getElementById('dailyOtHours');
+        const dailyRegularIncomeEl = document.getElementById('dailyRegularIncome');
+        const dailyOtIncomeEl = document.getElementById('dailyOtIncome');
+        const dailyExtraIncomeEl = document.getElementById('dailyExtraIncome');
+        const dailyTotalIncomeEl = document.getElementById('dailyTotalIncome');
+
+        const currentMonthYearEl = document.getElementById('currentMonthYear');
+        const prevMonthBtn = document.getElementById('prevMonthBtn');
+        const nextMonthBtn = document.getElementById('nextMonthBtn');
+        const calendarDaysEl = document.getElementById('calendarDays');
+
+        const monthlyTotalWorkHoursEl = document.getElementById('monthlyTotalWorkHours');
+        const monthlyTotalOtHoursEl = document.getElementById('monthlyTotalOtHours');
+        const monthlyTotalRegularIncomeEl = document.getElementById('monthlyTotalRegularIncome');
+        const monthlyTotalOtIncomeEl = document.getElementById('monthlyTotalOtIncome');
+        const monthlyTotalExtraIncomeEl = document.getElementById('monthlyTotalExtraIncome');
+        const monthlyTotalIncomeEl = document.getElementById('monthlyTotalIncome');
+
+        const appModal = document.getElementById('appModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalActions = document.getElementById('modalActions');
+
+        // Elements for the edit modal
+        const editDailyRecordModal = document.getElementById('editDailyRecordModal');
+        const closeEditModalBtn = document.getElementById('closeEditModalBtn');
+        const editModalDate = document.getElementById('editModalDate');
+        const editModalDateKey = document.getElementById('editModalDateKey');
+        const editClockInTimeInput = document.getElementById('editClockInTime');
+        const editClockOutTimeInput = document.getElementById('editClockOutTime');
+        const editOtStartTimeInput = document.getElementById('editOtStartTime');
+        const editOtEndTimeInput = document.getElementById('editOtEndTime');
+        const editExtraIncomeInput = document.getElementById('editExtraIncome');
+        const editExtraNoteInput = document.getElementById('editExtraNote');
+        const editIsAbsentCheckbox = document.getElementById('editIsAbsent');
+        const saveEditedRecordBtn = document.getElementById('saveEditedRecordBtn');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const deleteDailyRecordBtn = document.getElementById('deleteDailyRecordBtn');
+
+        // Global Variables
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+
+        // Data Structures
+        let settings = {
+            baseSalary: 15000,
+            workingDaysPerMonth: 22,
+            breakTime: 60 // minutes
+        };
+
+        // dailyRecords will store data for each day, keyed by 'YYYY-MM-DD'
+        let dailyRecords = {};
+
+        // Helper Functions
+        /**
+         * Formats a Date object into a time string (HH:MM:SS).
+         * @param {Date} date - The date object to format.
+         * @returns {string} Formatted time string.
+         */
+        function formatTime(date) {
+            if (!date || isNaN(date.getTime())) return 'ยังไม่บันทึก';
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            return `${hours}:${minutes}:${seconds}`;
+        }
+
+        /**
+         * Formats a Date object into a date string (DD/MM/YYYY).
+         * @param {Date} date - The date object to format.
+         * @returns {string} Formatted date string.
+         */
+        function formatDate(date) {
+            if (!date || isNaN(date.getTime())) return 'ยังไม่บันทึก';
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        /**
+         * Formats a Date object into a YYYY-MM-DD string for data keys.
+         * @param {Date} date - The date object to format.
+         * @returns {string} Formatted date key string.
+         */
+        function getDateKey(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        /**
+         * Calculates the difference between two Date objects in minutes.
+         * @param {Date} start - The start Date object.
+         * @param {Date} end - The end Date object.
+         * @returns {number} Difference in minutes. Returns 0 if inputs are invalid.
+         */
+        function getDurationInMinutes(start, end) {
+            if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) {
+                return 0;
+            }
+            return (end.getTime() - start.getTime()) / (1000 * 60);
+        }
+
+        /**
+         * Converts total minutes into hours and minutes string.
+         * @param {number} totalMinutes - Total minutes.
+         * @returns {string} Formatted string like "X ชั่วโมง Y นาที".
+         */
+        function minutesToHoursMinutes(totalMinutes) {
+            if (totalMinutes < 0) totalMinutes = 0; // Ensure non-negative duration
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = Math.round(totalMinutes % 60);
+            return `${hours} ชั่วโมง ${minutes} นาที`;
+        }
+
+        /**
+         * Shows a custom modal message.
+         * @param {string} message - The message to display.
+         * @param {Array<{text: string, className: string, onClick: Function}>} actions - Array of action buttons.
+         */
+        function showModal(message, actions = []) {
+            modalMessage.textContent = message;
+            modalActions.innerHTML = ''; // Clear previous buttons
+            if (actions.length === 0) { // Default OK button if no actions provided
+                actions.push({ text: 'ตกลง', className: 'btn-blue', onClick: () => {} });
+            }
+            actions.forEach(action => {
+                const button = document.createElement('button');
+                button.textContent = action.text;
+                button.className = `btn ${action.className} px-4 py-2 text-sm`;
+                button.onclick = () => {
+                    action.onClick();
+                    appModal.style.display = 'none'; // Close modal after action
+                };
+                modalActions.appendChild(button);
+            });
+            appModal.style.display = 'flex';
+        }
+
+        /**
+         * Closes the custom modal.
+         */
+        function closeModal() {
+            appModal.style.display = 'none';
+        }
+
+        // Local Storage Management
+        /**
+         * Loads settings from local storage.
+         */
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('otTrackerSettings');
+            if (savedSettings) {
+                settings = JSON.parse(savedSettings);
+                baseSalaryInput.value = settings.baseSalary;
+                workingDaysPerMonthInput.value = settings.workingDaysPerMonth;
+                breakTimeInput.value = settings.breakTime;
+            }
+        }
+
+        /**
+         * Saves settings to local storage.
+         */
+        function saveSettings() {
+            settings.baseSalary = parseFloat(baseSalaryInput.value) || 0;
+            settings.workingDaysPerMonth = parseInt(workingDaysPerMonthInput.value) || 1;
+            settings.breakTime = parseInt(breakTimeInput.value) || 0;
+            localStorage.setItem('otTrackerSettings', JSON.stringify(settings));
+            showModal('บันทึกการตั้งค่าเรียบร้อยแล้ว');
+            // Recalculate all daily summaries with new settings
+            for (const dateKey in dailyRecords) {
+                calculateAndSaveDailySummary(dateKey);
+            }
+            renderMonthlySummary(); // Recalculate monthly summary
+        }
+
+        /**
+         * Loads daily records from local storage.
+         */
+        function loadDailyRecords() {
+            const savedRecords = localStorage.getItem('otTrackerDailyRecords');
+            if (savedRecords) {
+                dailyRecords = JSON.parse(savedRecords);
+                // Convert stored date strings back to Date objects
+                for (const dateKey in dailyRecords) {
+                    const record = dailyRecords[dateKey];
+                    if (record.clockIn) record.clockIn = new Date(record.clockIn);
+                    if (record.clockOut) record.clockOut = new Date(record.clockOut);
+                    if (record.otStart) record.otStart = new Date(record.otStart);
+                    if (record.otEnd) record.otEnd = new Date(record.otEnd);
+                }
+            }
+        }
+
+        /**
+         * Saves daily records to local storage.
+         */
+        function saveDailyRecords() {
+            // Convert Date objects to ISO strings for storage
+            const recordsToSave = {};
+            for (const dateKey in dailyRecords) {
+                const record = { ...dailyRecords[dateKey] }; // Create a copy
+                if (record.clockIn) record.clockIn = record.clockIn.toISOString();
+                if (record.clockOut) record.clockOut = record.clockOut.toISOString();
+                if (record.otStart) record.otStart = record.otStart.toISOString();
+                if (record.otEnd) record.otEnd = record.otEnd.toISOString();
+                recordsToSave[dateKey] = record;
+            }
+            localStorage.setItem('otTrackerDailyRecords', JSON.stringify(recordsToSave));
+        }
+
+        // Time Tracking Logic
+        /**
+         * Initializes or gets the daily record for the current day.
+         * @returns {object} The daily record object.
+         */
+        function getCurrentDayRecord() {
+            const todayKey = getDateKey(new Date());
+            if (!dailyRecords[todayKey]) {
+                dailyRecords[todayKey] = {
+                    clockIn: null,
+                    clockOut: null,
+                    otStart: null,
+                    otEnd: null,
+                    extraIncome: 0,
+                    note: '',
+                    isAbsent: false,
+                    dailySummary: null // Will be calculated and saved by calculateAndSaveDailySummary
+                };
+            }
+            return dailyRecords[todayKey];
+        }
+
+        /**
+         * Updates the UI with current day's time tracking data.
+         */
+        function updateTimeTrackingUI() {
+            const record = getCurrentDayRecord();
+            clockInTimeEl.textContent = formatTime(record.clockIn);
+            clockOutTimeEl.textContent = formatTime(record.clockOut);
+            otStartTimeEl.textContent = formatTime(record.otStart);
+            otEndTimeEl.textContent = formatTime(record.otEnd);
+
+            extraIncomeInput.value = record.extraIncome;
+            extraNoteInput.value = record.note;
+            isAbsentCheckbox.checked = record.isAbsent;
+        }
+
+        /**
+         * Handles clock-in action.
+         */
+        function clockIn() {
+            const record = getCurrentDayRecord();
+            if (record.clockIn) {
+                showModal('คุณได้เข้างานไปแล้ว');
+                return;
+            }
+            record.clockIn = new Date();
+            updateTimeTrackingUI();
+            calculateAndSaveDailySummary(getDateKey(new Date())); // Use new function
+            showModal('บันทึกเวลาเข้างานแล้ว!');
+        }
+
+        /**
+         * Handles clock-out action.
+         */
+        function clockOut() {
+            const record = getCurrentDayRecord();
+            if (!record.clockIn) {
+                showModal('กรุณาเข้างานก่อน');
+                return;
+            }
+            if (record.clockOut) {
+                showModal('คุณได้ออกงานไปแล้ว');
+                return;
+            }
+            record.clockOut = new Date();
+            updateTimeTrackingUI();
+            calculateAndSaveDailySummary(getDateKey(new Date())); // Use new function
+            showModal('บันทึกเวลาออกงานแล้ว!');
+        }
+
+        /**
+         * Handles start OT action.
+         */
+        function startOT() {
+            const record = getCurrentDayRecord();
+            if (!record.clockIn) {
+                showModal('กรุณาเข้างานก่อนเริ่ม OT');
+                return;
+            }
+            if (record.otStart) {
+                showModal('คุณได้เริ่ม OT ไปแล้ว');
+                return;
+            }
+            record.otStart = new Date();
+            updateTimeTrackingUI();
+            calculateAndSaveDailySummary(getDateKey(new Date())); // Use new function
+            showModal('บันทึกเวลาเริ่ม OT แล้ว!');
+        }
+
+        /**
+         * Handles end OT action.
+         */
+        function endOT() {
+            const record = getCurrentDayRecord();
+            if (!record.otStart) {
+                showModal('กรุณาเริ่ม OT ก่อนจบ OT');
+                return;
+            }
+            if (record.otEnd) {
+                showModal('คุณได้จบ OT ไปแล้ว');
+                return;
+            }
+            record.otEnd = new Date();
+            updateTimeTrackingUI();
+            calculateAndSaveDailySummary(getDateKey(new Date())); // Use new function
+            showModal('บันทึกเวลาจบ OT แล้ว!');
+        }
+
+        // Daily Summary & Calculations
+        /**
+         * Calculates and updates the daily summary for a specific day.
+         * @param {string} dateKey - The 'YYYY-MM-DD' key for the day.
+         */
+        function calculateAndSaveDailySummary(dateKey) {
+            const record = dailyRecords[dateKey];
+
+            if (!record) {
+                // If no record, ensure no summary is stored
+                if (dailyRecords[dateKey]) delete dailyRecords[dateKey].dailySummary;
+                return;
+            }
+
+            let workDurationMinutes = 0;
+            let otDurationMinutes = 0;
+            let regularIncome = 0;
+            let otIncome = 0;
+            let totalIncome = 0;
+
+            // Calculate work duration
+            if (record.clockIn && record.clockOut) {
+                workDurationMinutes = getDurationInMinutes(record.clockIn, record.clockOut);
+                // Deduct break time
+                workDurationMinutes = Math.max(0, workDurationMinutes - settings.breakTime);
+            }
+
+            // Calculate OT duration
+            if (record.otStart && record.otEnd) {
+                otDurationMinutes = getDurationInMinutes(record.otStart, record.otEnd);
+            }
+
+            const dailyHourlyRate = settings.baseSalary / settings.workingDaysPerMonth / 8; // Assuming 8 hours workday
+
+            if (record.isAbsent) {
+                // If absent, base income is negative
+                regularIncome = -dailyHourlyRate * 8; // Assuming 8 hours lost
+            } else {
+                regularIncome = (workDurationMinutes / 60) * dailyHourlyRate;
+            }
+
+            otIncome = (otDurationMinutes / 60) * dailyHourlyRate * 1.5; // OT at 1.5x
+
+            totalIncome = regularIncome + otIncome + (record.extraIncome || 0);
+
+            // Save summary to record
+            record.dailySummary = {
+                regularHours: workDurationMinutes / 60,
+                otHours: otDurationMinutes / 60,
+                regularIncome: regularIncome,
+                otIncome: otIncome,
+                extraIncome: record.extraIncome || 0,
+                totalIncome: totalIncome
+            };
+            saveDailyRecords(); // Save changes to local storage
+            // If this is the current day, also update the main daily summary UI
+            const todayKey = getDateKey(new Date());
+            if (dateKey === todayKey) {
+                updateCurrentDaySummaryUI();
+            }
+            renderCalendar(); // Update calendar with new summary
+            renderMonthlySummary(); // Update monthly summary
+        }
+
+        /**
+         * Updates the UI for the current day's summary.
+         */
+        function updateCurrentDaySummaryUI() {
+            const todayKey = getDateKey(new Date());
+            const record = dailyRecords[todayKey];
+            if (record && record.dailySummary) {
+                const summary = record.dailySummary;
+                dailyWorkHoursEl.textContent = minutesToHoursMinutes(summary.regularHours * 60);
+                dailyOtHoursEl.textContent = minutesToHoursMinutes(summary.otHours * 60);
+                // dailyRegularIncomeEl.textContent = summary.regularIncome.toFixed(2) + ' บาท'; // Hidden in new design
+                // dailyOtIncomeEl.textContent = summary.otIncome.toFixed(2) + ' บาท'; // Hidden in new design
+                // dailyExtraIncomeEl.textContent = summary.extraIncome.toFixed(2) + ' บาท'; // Hidden in new design
+                dailyTotalIncomeEl.textContent = summary.totalIncome.toFixed(2); // Only total income shown
+            } else {
+                dailyWorkHoursEl.textContent = '0 ชั่วโมง 0 นาที';
+                dailyOtHoursEl.textContent = '0 ชั่วโมง 0 นาที';
+                dailyTotalIncomeEl.textContent = '0.00';
+            }
+        }
+
+        /**
+         * Saves extra income, note, and absent status for the current day.
+         */
+        function saveDailyExtraData() {
+            const record = getCurrentDayRecord();
+            record.extraIncome = parseFloat(extraIncomeInput.value) || 0;
+            record.note = extraNoteInput.value.trim();
+            record.isAbsent = isAbsentCheckbox.checked;
+            saveDailyRecords(); // Save the record itself
+            calculateAndSaveDailySummary(getDateKey(new Date())); // Recalculate with new extra data
+            showModal('บันทึกข้อมูลรายวันเรียบร้อยแล้ว');
+        }
+
+        // Calendar Rendering
+        /**
+         * Renders the calendar for the currentMonth and currentYear.
+         */
+        function renderCalendar() {
+            calendarDaysEl.innerHTML = ''; // Clear previous days
+            const today = new Date();
+            const todayKey = getDateKey(today);
+
+            const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const firstDayOfWeek = firstDayOfMonth.getDay(); // 0 for Sunday, 1 for Monday...
+
+            currentMonthYearEl.textContent = `${new Date(currentYear, currentMonth).toLocaleString('th-TH', { month: 'long', year: 'numeric' })}`;
+
+            // Add empty divs for days before the first day of the month
+            for (let i = 0; i < firstDayOfWeek; i++) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'calendar-day bg-gray-100';
+                calendarDaysEl.appendChild(emptyDiv);
+            }
+
+            // Add days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(currentYear, currentMonth, day);
+                const dateKey = getDateKey(date);
+                const record = dailyRecords[dateKey];
+                const dayDiv = document.createElement('div');
+                dayDiv.className = `calendar-day ${date.getMonth() === currentMonth ? '' : 'bg-gray-100'} ${dateKey === todayKey ? 'current-day' : ''}`;
+                dayDiv.setAttribute('data-date-key', dateKey); // Add data attribute
+
+                let summaryHtml = '';
+                if (record && record.dailySummary) {
+                    const summary = record.dailySummary;
+                    if (record.isAbsent) {
+                        summaryHtml += `<p class="summary-text text-red-600 font-bold">ขาดงาน</p>`;
+                        summaryHtml += `<p class="summary-text">รวม: ${summary.totalIncome.toFixed(2)} บ.</p>`;
+                    } else if (summary.totalIncome !== 0 || summary.regularHours > 0 || summary.otHours > 0 || summary.extraIncome > 0) { // Check if there's any meaningful data
+                        summaryHtml += `<p class="summary-text">ทำงาน: ${minutesToHoursMinutes(summary.regularHours * 60)}</p>`;
+                        if (summary.otHours > 0) {
+                            summaryHtml += `<p class="summary-text">OT: ${minutesToHoursMinutes(summary.otHours * 60)}</p>`;
+                        }
+                        if (summary.extraIncome > 0) {
+                            summaryHtml += `<p class="summary-text">พิเศษ: ${summary.extraIncome.toFixed(2)} บ.</p>`;
+                        }
+                        summaryHtml += `<p class="summary-text font-semibold">รวม: ${summary.totalIncome.toFixed(2)} บ.</p>`;
+                    } else {
+                        summaryHtml += `<p class="summary-text text-gray-500">ไม่มีข้อมูล</p>`;
+                    }
+                } else {
+                    summaryHtml += `<p class="summary-text text-gray-500">ไม่มีข้อมูล</p>`;
+                }
+
+                dayDiv.innerHTML = `
+                    <div class="day-number">${day}</div>
+                    <div class="summary-info w-full text-left">
+                        ${summaryHtml}
+                    </div>
+                `;
+                dayDiv.addEventListener('click', () => openEditModal(dateKey)); // Add click listener
+                calendarDaysEl.appendChild(dayDiv);
+            }
+        }
+
+        /**
+         * Changes the displayed month in the calendar.
+         * @param {number} offset - -1 for previous month, 1 for next month.
+         */
+        function changeMonth(offset) {
+            currentMonth += offset;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            } else if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+            renderMonthlySummary();
+        }
+
+        // Monthly Summary
+        /**
+         * Calculates and renders the monthly summary for the currentMonth and currentYear.
+         */
+        function renderMonthlySummary() {
+            let totalWorkHoursMinutes = 0;
+            let totalOtHoursMinutes = 0;
+            let totalRegularIncome = 0;
+            let totalOtIncome = 0;
+            let totalExtraIncome = 0;
+            let totalMonthlyIncome = 0;
+
+            for (const dateKey in dailyRecords) {
+                const record = dailyRecords[dateKey];
+                const recordDate = new Date(dateKey + 'T00:00:00'); // Parse date key back to Date object, add T00:00:00 for consistent parsing
+                if (recordDate.getMonth() === currentMonth && recordDate.getFullYear() === currentYear) {
+                    if (record.dailySummary) {
+                        totalWorkHoursMinutes += record.dailySummary.regularHours * 60;
+                        totalOtHoursMinutes += record.dailySummary.otHours * 60;
+                        totalRegularIncome += record.dailySummary.regularIncome;
+                        totalOtIncome += record.dailySummary.otIncome;
+                        totalExtraIncome += record.dailySummary.extraIncome;
+                        totalMonthlyIncome += record.dailySummary.totalIncome;
+                    }
+                }
+            }
+
+            monthlyTotalWorkHoursEl.textContent = minutesToHoursMinutes(totalWorkHoursMinutes);
+            monthlyTotalOtHoursEl.textContent = minutesToHoursMinutes(totalOtHoursMinutes);
+            monthlyTotalRegularIncomeEl.textContent = totalRegularIncome.toFixed(2) + ' บาท';
+            monthlyTotalOtIncomeEl.textContent = totalOtIncome.toFixed(2) + ' บาท';
+            monthlyTotalExtraIncomeEl.textContent = totalExtraIncome.toFixed(2) + ' บาท';
+            monthlyTotalIncomeEl.textContent = totalMonthlyIncome.toFixed(2) + ' บาท';
+        }
+
+        // Functions for Edit Modal
+        /**
+         * Converts a Date object to HH:MM string for time input.
+         * @param {Date|null} date - The date object.
+         * @returns {string} HH:MM string or empty string.
+         */
+        function formatTimeForInput(date) {
+            if (!date || isNaN(date.getTime())) return '';
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        /**
+         * Opens the modal to edit a specific daily record.
+         * @param {string} dateKey - The 'YYYY-MM-DD' key of the record to edit.
+         */
+        function openEditModal(dateKey) {
+            const record = dailyRecords[dateKey] || {}; // Get existing record or an empty object
+            const displayDate = new Date(dateKey + 'T00:00:00'); // Create date object for display
+            editModalDate.textContent = displayDate.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            editModalDateKey.value = dateKey;
+
+            editClockInTimeInput.value = formatTimeForInput(record.clockIn);
+            editClockOutTimeInput.value = formatTimeForInput(record.clockOut);
+            editOtStartTimeInput.value = formatTimeForInput(record.otStart);
+            editOtEndTimeInput.value = formatTimeForInput(record.otEnd);
+            editExtraIncomeInput.value = record.extraIncome || 0;
+            editExtraNoteInput.value = record.note || '';
+            editIsAbsentCheckbox.checked = record.isAbsent || false;
+
+            editDailyRecordModal.style.display = 'flex';
+        }
+
+        /**
+         * Closes the edit daily record modal.
+         */
+        function closeEditModal() {
+            editDailyRecordModal.style.display = 'none';
+        }
+
+        /**
+         * Parses HH:MM string and sets it on a base Date object.
+         * @param {Date} baseDate - The date object to set time on.
+         * @param {string} timeString - The HH:MM string.
+         * @returns {Date|null} Updated Date object or null if timeString is empty/invalid.
+         */
+        function setTimeOnDate(baseDate, timeString) {
+            if (!timeString) return null;
+            const [hours, minutes] = timeString.split(':').map(Number);
+            if (isNaN(hours) || isNaN(minutes)) return null;
+
+            const newDate = new Date(baseDate); // Create a copy to avoid modifying original baseDate
+            newDate.setHours(hours, minutes, 0, 0);
+            return newDate;
+        }
+
+        /**
+         * Saves the edited daily record from the modal.
+         */
+        function saveEditedDailyRecord() {
+            const dateKey = editModalDateKey.value;
+            const baseDate = new Date(dateKey + 'T00:00:00'); // Use the date part from dateKey
+
+            const newRecord = {
+                clockIn: setTimeOnDate(baseDate, editClockInTimeInput.value),
+                clockOut: setTimeOnDate(baseDate, editClockOutTimeInput.value),
+                otStart: setTimeOnDate(baseDate, editOtStartTimeInput.value),
+                otEnd: setTimeOnDate(baseDate, editOtEndTimeInput.value),
+                extraIncome: parseFloat(editExtraIncomeInput.value) || 0,
+                note: editExtraNoteInput.value.trim(),
+                isAbsent: editIsAbsentCheckbox.checked
+            };
+
+            // --- Validation ---
+            let isValid = true;
+            let errorMessage = '';
+
+            if (newRecord.clockIn && newRecord.clockOut && newRecord.clockOut.getTime() < newRecord.clockIn.getTime()) {
+                isValid = false;
+                errorMessage += 'เวลาออกงานต้องอยู่หลังเวลาเข้างาน\n';
+            }
+            if (newRecord.otStart && newRecord.otEnd && newRecord.otEnd.getTime() < newRecord.otStart.getTime()) {
+                isValid = false;
+                errorMessage += 'เวลาจบ OT ต้องอยู่หลังเวลาเริ่ม OT\n';
+            }
+            // Basic check: OT start should not be before clock-in if both exist
+            if (newRecord.otStart && newRecord.clockIn && newRecord.otStart.getTime() < newRecord.clockIn.getTime()) {
+                isValid = false;
+                errorMessage += 'เวลาเริ่ม OT ไม่ควรอยู่ก่อนเวลาเข้างาน\n';
+            }
+
+            if (!isValid) {
+                showModal(errorMessage.trim(), [{ text: 'ตกลง', className: 'btn-blue', onClick: () => {} }]);
+                return;
+            }
+
+            dailyRecords[dateKey] = newRecord;
+            calculateAndSaveDailySummary(dateKey); // Recalculate and save for this specific day
+            closeEditModal();
+            showModal('บันทึกการแก้ไขเรียบร้อยแล้ว');
+        }
+
+        /**
+         * Deletes the daily record for the currently edited day.
+         */
+        function deleteDailyRecord() {
+            showModal('คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลวันนี้?', [
+                { text: 'ยกเลิก', className: 'btn-secondary', onClick: () => {} },
+                { text: 'ลบ', className: 'btn-danger', onClick: () => {
+                    const dateKey = editModalDateKey.value;
+                    delete dailyRecords[dateKey];
+                    saveDailyRecords();
+                    closeEditModal();
+                    renderCalendar();
+                    renderMonthlySummary();
+                    updateCurrentDaySummaryUI(); // Update if current day was deleted
+                    showModal('ข้อมูลถูกลบเรียบร้อยแล้ว');
+                }}
+            ]);
+        }
+
+        /**
+         * Resets all application data (settings and daily records).
+         */
+        function resetAllData() {
+            showModal('คุณแน่ใจหรือไม่ว่าต้องการรีเซ็ตข้อมูลทั้งหมด? การดำเนินการนี้ไม่สามารถย้อนกลับได้', [
+                { text: 'ยกเลิก', className: 'btn-secondary', onClick: () => {} },
+                { text: 'รีเซ็ต', className: 'btn-danger', onClick: () => {
+                    localStorage.clear(); // Clear all local storage
+                    settings = { // Reset to default settings
+                        baseSalary: 15000,
+                        workingDaysPerMonth: 22,
+                        breakTime: 60
+                    };
+                    dailyRecords = {}; // Clear all records
+                    loadSettings(); // Reload default settings into UI
+                    updateTimeTrackingUI(); // Clear current day UI
+                    updateCurrentDaySummaryUI(); // Clear current day summary
+                    renderCalendar(); // Re-render empty calendar
+                    renderMonthlySummary(); // Clear monthly summary
+                    showModal('ข้อมูลทั้งหมดถูกรีเซ็ตแล้ว');
+                }}
+            ]);
+        }
+
+
+        // Event Listeners
+        clockInBtn.addEventListener('click', clockIn);
+        clockOutBtn.addEventListener('click', clockOut);
+        startOtBtn.addEventListener('click', startOT);
+        endOtBtn.addEventListener('click', endOT);
+
+        saveSettingsBtn.addEventListener('click', saveSettings);
+        resetAllDataBtn.addEventListener('click', resetAllData);
+        saveDailyDataBtn.addEventListener('click', saveDailyExtraData);
+
+        prevMonthBtn.addEventListener('click', () => changeMonth(-1));
+        nextMonthBtn.addEventListener('click', () => changeMonth(1));
+
+        closeModalBtn.addEventListener('click', closeModal);
+        // Close app modal if clicked outside content
+        appModal.addEventListener('click', (event) => {
+            if (event.target === appModal) {
+                closeModal();
+            }
+        });
+
+        closeEditModalBtn.addEventListener('click', closeEditModal);
+        cancelEditBtn.addEventListener('click', closeEditModal);
+        saveEditedRecordBtn.addEventListener('click', saveEditedDailyRecord);
+        deleteDailyRecordBtn.addEventListener('click', deleteDailyRecord);
+
+        // Close edit modal if clicked outside content
+        editDailyRecordModal.addEventListener('click', (event) => {
+            if (event.target === editDailyRecordModal) {
+                closeEditModal();
+            }
+        });
+
+
+        // Initial Load and Updates
+        /**
+         * Updates the current time and date display every second.
+         */
+        function updateCurrentTime() {
+            const now = new Date();
+            currentTimeEl.textContent = formatTime(now);
+            currentDateEl.textContent = formatDate(now);
+        }
+
+        // Run on page load
+        window.onload = function() {
+            loadSettings();
+            loadDailyRecords();
+            updateCurrentTime(); // Update time immediately
+            setInterval(updateCurrentTime, 1000); // Update time every second
+            updateTimeTrackingUI(); // Update UI with today's record
+            updateCurrentDaySummaryUI(); // Display current day's summary
+            calculateAndSaveDailySummary(getDateKey(new Date())); // Ensure current day's summary is calculated
+            renderCalendar(); // Render initial calendar
+            renderMonthlySummary(); // Render initial monthly summary
+        };
+
+    </script>
+</body>
+</html>
